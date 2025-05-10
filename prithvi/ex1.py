@@ -95,9 +95,9 @@ def load_raster(path, if_img=1, crop=None):
 def preprocess_image(image,means,stds):        
   # normalize image
   means1 = means.reshape(-1,1,1)  # Mean across height and width, for each channel
-  stds1 = stds.reshape(-1,1,1)    # Std deviation across height and width, for each channel
+  stds1 = stds.reshape(-1,1,1)    # Std deviation across height and width, for each channelzz
   normalized = image.copy()
-  normalized = ((image - means1) / stds1)
+  normalized = ((image - means1) / stds1)n
   normalized = torch.from_numpy(normalized.reshape(1, normalized.shape[0], 1, *normalized.shape[-2:])).to(torch.float32)
   #print('return from norm')
   return normalized
