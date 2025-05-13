@@ -1,7 +1,8 @@
 import torch
 import torch.nn as nn
 import torchvision.models as tmodels
-from terratorch.models.backbones.prithvi_mae import PrithviViT
+from terratorch.models.pixel_wise_model import freeze_module
+
 
 class prithvi_terratorch(nn.Module):
   def __init__(self, prithvi_weight, model_instance, input_size):

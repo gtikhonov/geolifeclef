@@ -1,3 +1,4 @@
+import numpy as np
 import torch
 
 def set_seed(seed):
@@ -8,17 +9,6 @@ def set_seed(seed):
         # Set cuDNN's random number generator seed for deterministic behavior
         torch.backends.cudnn.deterministic = True
         torch.backends.cudnn.benchmark = False
-
-
-def load_raster(path, if_img=1, crop=None):
-  with rasterio.open(path) as src:
-    img = src.read(out_dtype=np.float32)
-    if if_img==1:
-      bands=[0,1,2,3]
-      img = img[bands,:,:]
-    if crop:
-      img = img[:, -crop[0]:, -crop[1]:]
-  return img
 
 
 def f1_score(outputs, targets=None, M=400, mult=1, offset=0, device=torch.device("cpu")):
