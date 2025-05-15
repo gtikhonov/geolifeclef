@@ -10,10 +10,10 @@ fmDir = "fmTF_mahti"
 ns = 2519
 np = 100
 nf = 20
-nSamples = 50
+nSamples = 100
 thin = 4000
 batchSize = 1000
-covNum = 408            # 228=90%, 408=95%
+covNum = 228            # 228=90%, 408=95%
 
 # read data and preprocess ----------------------------------------------------------------------------------------------------------------------
 set.seed(RS)
@@ -134,7 +134,7 @@ for(b in 1:ceiling(nrow(XDataTest)/batchSize)){
     rLExtList = list(); 
     studyDesignExt = NULL
   }
-  pred = predict(fitTF, XData=XDataBatch, studyDesign=studyDesignExt, ranLevels=rLExtList, expected=TRUE, predictEtaMeanField=TRUE)
+  pred = predict(fitTF, XData=XDataBatch, studyDesign=studyDesignExt, ranLevels=rLExtList, expected=TRUE, predictEtaMean=TRUE)
   predMean[start:end,] = colMeans(abind(pred, along=0))
   setTxtProgressBar(pb, b)
 }

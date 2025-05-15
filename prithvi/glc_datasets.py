@@ -123,16 +123,16 @@ def read_train_data(path_data, cov_flag_list, sel_countries, pa_presence_thresho
     train_metadata["area"] = train_metadata["areaInM2"].apply(lambda x: 1.0 if np.isinf(x).all() else np.mean(x, where=~np.isinf(x)))
     train_metadata["areaLog"] = np.log10(train_metadata["area"])
     
-    train_metadata['area'].fillna(train_metadata['area'].mean(), inplace=True)
-    train_metadata['areaLog'].fillna(train_metadata['areaLog'].mean(), inplace=True)
+    train_metadata['area'] = train_metadata['area'].fillna(train_metadata['area'].mean())
+    train_metadata['areaLog'] = train_metadata['areaLog'].fillna(train_metadata['areaLog'].mean())
     country_columns = ["con"+country[:3] for country in sel_countries] + ["conOther"]
     for country, col in zip(sel_countries, country_columns[:-1]):
         train_metadata[col] = train_metadata["country"] == country
     train_metadata[country_columns[-1]] = ~train_metadata["country"].isin(sel_countries)
     train_elevation = pd.read_csv(os.path.join(path_data, "EnvironmentalValues", "Elevation", "GLC25-PA-train-elevation.csv"), index_col=0)
-    train_elevation['Elevation'].fillna((train_elevation['Elevation'].mean()), inplace=True)
+    train_elevation['Elevation'] = train_elevation['Elevation'].fillna((train_elevation['Elevation'].mean()))
     train_soil = pd.read_csv(os.path.join(path_data, "EnvironmentalValues", "SoilGrids", "GLC25-PA-train-soilgrids.csv"), index_col=0)
-    for column in train_soil.columns: train_soil[column].fillna((train_soil[column].mean()), inplace=True)
+    for column in train_soil.columns: train_soil[column] = train_soil[column].fillna((train_soil[column].mean()))
     train_worldcover = pd.read_csv(os.path.join(path_data, "worldcover", "s2_pa_train_survey_points_with_worldcover.csv"), index_col=0)
     train_wcdummy = pd.get_dummies(train_worldcover["class"], prefix="wc")
     train_wcdummy.drop(columns="wc_70", inplace=True)
@@ -152,7 +152,7 @@ def read_train_data(path_data, cov_flag_list, sel_countries, pa_presence_thresho
     cov_norm_coef.loc["mean",dummy_columns] = 0
     cov_norm_coef.loc["std",dummy_columns] = 1
     train_combined.loc[:,cov_columns] = (train_combined.loc[:,cov_columns] - cov_norm_coef.loc["mean"]) / cov_norm_coef.loc["std"]
-    return train_combined, train_label_series, cov_columns, cov_norm_coef, num_classes
+    return train_combined, train_label_series, sp_categorical.categories.values, cov_columns, cov_norm_coef, num_classes
 
 
 def read_test_data(path_data, cov_columns, cov_norm_coef, sel_countries, landcover_col_ind=[0,2,3,5,8,11,12]):
@@ -160,23 +160,25 @@ def read_test_data(path_data, cov_columns, cov_norm_coef, sel_countries, landcov
     test_metadata.rename(columns={"areaInM2": "area"}, inplace=True)
     test_metadata.replace({"area": [np.inf, -np.inf]}, 1.0, inplace=True)
     test_metadata['areaLog'] = np.log10(test_metadata['area'])
-    test_metadata['area'].fillna(test_metadata['area'].mean(), inplace=True)
-    test_metadata['areaLog'].fillna(test_metadata['areaLog'].mean(), inplace=True)
+    test_metadata['area'] = test_metadata['area'].fillna(test_metadata['area'].mean())
+    test_metadata['areaLog'] = test_metadata['areaLog'].fillna(test_metadata['areaLog'].mean())
     country_columns = ["con"+country[:3] for country in sel_countries] + ["conOther"]
     for country, col in zip(sel_countries, country_columns[:-1]):
         test_metadata[col] = test_metadata["country"] == country
     test_metadata[country_columns[-1]] = ~test_metadata["country"].isin(sel_countries)
     test_elevation = pd.read_csv(os.path.join(path_data, "EnvironmentalValues", "Elevation", "GLC25-PA-test-elevation.csv"), index_col=0).sort_index()
     test_elevation = test_elevation.loc[test_elevation.index.isin(test_metadata.index)]
-    test_elevation['Elevation'].fillna((test_elevation['Elevation'].mean()), inplace=True)
+    test_elevation['Elevation'] = test_elevation['Elevation'].fillna((test_elevation['Elevation'].mean()))
     test_soil = pd.read_csv(os.path.join(path_data, "EnvironmentalValues", "SoilGrids", "GLC25-PA-test-soilgrids.csv"), index_col=0).sort_index()
     test_soil = test_soil.loc[test_soil.index.isin(test_metadata.index)]
-    for column in test_soil.columns: test_soil[column].fillna((test_soil[column].mean()), inplace=True)
+    for column in test_soil.columns: test_soil[column] = test_soil[column].fillna((test_soil[column].mean()))
     test_worldcover = pd.read_csv(os.path.join(path_data, "worldcover", "pa_test_survey_points_with_worldcover.csv"), index_col=0).sort_index()
     test_wcdummy = pd.get_dummies(test_worldcover["class"], prefix="wc")
     test_wcdummy.drop(columns="wc_100", inplace=True)
     # test_wcdummy.insert(6, "wc_70", False)
-    test_landcover = pd.read_csv(os.path.join(path_data, "EnvironmentalValues", "LandCover", "GLC25-PA-test-landcover.csv"), index_col=1).sort_index().drop("Unnamed: 0", axis=1)
+    test_landcover = pd.read_csv(os.path.join(path_data, "EnvironmentalValues", "LandCover", "GLC25-PA-test-landcover.csv"), index_col=1).sort_index()
+    if any(test_landcover.columns == "Unnamed: 0"):
+        test_landcover.drop("Unnamed: 0", axis=1, inplace=True)
     test_landcover = test_landcover.loc[test_landcover.index.isin(test_metadata.index)]
     test_landcover = test_landcover.iloc[:, landcover_col_ind]
     test_snow = pd.read_csv(os.path.join(path_data, "EnvironmentalValues", "chelsa_snow", "pa_test_snowcover_chelsa_scd.csv"), index_col=0).sort_index()

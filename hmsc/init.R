@@ -7,6 +7,7 @@ nSamples = 10
 thin = 1
 transient = nSamples * thin
 
+use_po = 1
 ns = 2519
 np = 100
 nf = 20
@@ -21,7 +22,6 @@ if(covNum == "orig"){
   lonlat = cov[, c("lon", "lat")]
   XData = cov[, setdiff(colnames(cov), c("lon", "lat"))]
 } else{
-  cat("read deep features\n")
   if(!exists("deepfeatures")){
     cat("read deep features\n")
     deepfeatures = read.csv(file.path(path_data, "hmsc", "train_deepfeatures.csv"))

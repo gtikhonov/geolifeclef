@@ -11,7 +11,8 @@ def set_seed(seed):
         torch.backends.cudnn.benchmark = False
 
 
-def f1_score(outputs, targets=None, M=400, mult=1, offset=0, device=torch.device("cpu")):
+
+def f1_score(outputs, targets=None, M=400, mult=1, offset=0, min_num=1, max_num=1000, device=torch.device("cpu")):
     num_classes = outputs.shape[-1]
     prob_ord = torch.argsort(outputs, dim=-1, descending=True)
     log_prob = torch.gather(outputs, -1, prob_ord)
@@ -23,8 +24,10 @@ def f1_score(outputs, targets=None, M=400, mult=1, offset=0, device=torch.device
     f1_expected = torch.nanmean(f1_values, 0)
     # print(f1_expected)
     pred_num = torch.argmax(f1_expected, -1)
-    pred_num = torch.maximum(torch.minimum(torch.round(mult*pred_num+offset), torch.Tensor([outputs.shape[-1]]).to(device)), torch.zeros([1],device=device)).int()
-        
+    pred_num = torch.maximum(torch.minimum(torch.round(mult*pred_num+offset), torch.Tensor([outputs.shape[-1]]).to(device)), torch.zeros([1],device=device))
+    pred_num = torch.maximum(torch.minimum(pred_num, torch.tensor(max_num)), torch.tensor(min_num))
+    
+    pred_num = pred_num.int()  
     if targets is None:
         pred_list = [prob_ord[i,:pred_num[i]] for i in range(outputs.shape[0])]
         return pred_list
